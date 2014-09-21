@@ -123,7 +123,7 @@ public class ReScalePaPa {
 //				int bonOff = positionBase + boneOffset;
 				
 				writeFloat(tpos, factor * readFloat(tpos));
-//				writeFloat(bonOff, factor * readFloat(bonOff)); // no idea what this offset is for exactly, but it looks way better if I dont touch it
+//				writeFloat(bonOff, factor * readFloat(bonOff)); // no idea what this offset is for exactly, but it looks way better if I dont touch it (?)
 			}
 		}
 	}
