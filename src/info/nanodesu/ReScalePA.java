@@ -26,23 +26,25 @@ public class ReScalePA {
 	}
 	
 	public static void main(String[] args) throws NumberFormatException, IOException {
-//		args = new String[]{"E:\\Games\\PA\\Planetary Annihilation\\stable\\media\\pa\\units", "C:\\Users\\ColaColin\\AppData\\Local\\Uber Entertainment\\Planetary Annihilation\\server_mods\\rescale", "0.5"};		
-
-		if (args.length != 3) {
-			System.out.println("Usage: ReScalePA <path to media/pa> <empty output directory for the mod> <factor>");
-		} else {
-			new ReScalePA(new File(args[0]), new File(args[1]), Float.parseFloat(args[2])).createMod();
+		if (args.length != 1) {
+			System.out.println("Usage: ReScalePA <path to configuration>. Trying to use my hardcoded path because I am lazy, this will crash for you if you are not Cola_Colin...");
+			args = new String[]{"C:\\Users\\ColaColin\\git\\ReScalePa\\conf.txt"};
 		}
+
+		new ReScalePA(new ReScaleConf(FileUtils.readLines(new File(args[0])))).createMod();
 	}
 	
 	private File basePath;
 	private File outputPath;
 	private float factor;
 	
-	public ReScalePA(File input, File output, float factor) {
-		basePath = input;
-		outputPath = output;
-		this.factor = factor;
+	private ReScaleConf conf;
+
+	public ReScalePA(ReScaleConf conf) {
+		this.conf = conf;
+		basePath = new File(conf.getPaUnitsPath());
+		outputPath = new File(conf.getModOutputPath());
+		this.factor = conf.getScale();
 	}
 	
 	private List<String> getUnitJsons() throws IOException {
@@ -56,35 +58,58 @@ public class ReScalePA {
 		return lst;
 	}
 	
-	public void createMod() throws IOException {
-		FileUtils.writeStringToFile(new File(outputPath, "modinfo.json"), createModInfo(factor));
-		
-		List<String> units = getUnitJsons();
-		for (String unit: units) {
-			processUnit(unit);
+	private List<String> getUnitsToProcess() throws IOException {
+		if (conf.getUnitsToConvert().isEmpty()) {
+			List<String> paUnits = getUnitJsons();
+			paUnits.removeAll(conf.getUnitsToIgnore());
+			return paUnits;
+		} else {
+			return conf.getUnitsToConvert();
 		}
 	}
 	
-	private void processUnit(String str) {
-		try {
-			File json = new File(basePath, str.replace("/pa/units/", ""));
-			ReScaleJson jsonScale = new ReScaleJson(factor);
-			jsonScale.readFile(json);
-			jsonScale.process();
-			
-			ReScalePaPa papaScale = new ReScalePaPa(factor);
-			papaScale.readFile(new File(json.getAbsolutePath().replace(".json", ".papa")));
-			papaScale.process();
-			
-			File out = new File(outputPath, str);
-			out.getParentFile().mkdirs();
-			
-			System.out.println("processing for "+str+" complete, writing results...");
-			papaScale.writeOutput(new File(out.getAbsolutePath().replace(".json", ".papa")));
-			jsonScale.writeOutput(out);
-		} catch (Exception ex) {
-			System.out.println("Error processing unit: "+str);
-			ex.printStackTrace(System.out);
+	public void createMod() throws IOException {
+		FileUtils.writeStringToFile(new File(outputPath, "modinfo.json"), createModInfo(factor));
+		
+		List<String> units = getUnitsToProcess();
+		for (String unit: units) {
+			try {
+				File outJson = new File(outputPath, unit);
+				outJson.getParentFile().mkdirs();
+				ReScaleJson jsonScale = processUnitJson(unit);
+				for (String model: jsonScale.getModels()) {
+					processModel(model);
+				}
+				jsonScale.writeOutput(outJson);
+				System.out.println("processed "+unit);
+			} catch (Exception ex) {
+				System.out.println("Error processing unit: "+unit);
+				ex.printStackTrace(System.out);
+			}
 		}
+	}
+	
+	private void processModel(String model) throws IOException {
+		ReScalePaPa papaScale = new ReScalePaPa(factor);
+		File papaFile = new File(basePath, model.replace("/pa/units/", ""));
+		papaScale.readFile(papaFile);
+		papaScale.process();
+		File out = new File(outputPath, model);
+		String modelName = out.getParentFile().getName();
+		
+		String[] textures = new String[]{"_diffuse.papa", "_mask.papa", "_material.papa"};
+		
+		for (String texture: textures) {
+			FileUtils.copyFile(new File(papaFile.getParentFile(), modelName+texture), new File(out.getParentFile(), modelName+"X"+texture));
+		}
+		papaScale.writeOutput(new File(out.getAbsolutePath().replace(".papa", "X.papa")));
+	}
+	
+	private ReScaleJson processUnitJson(String str) throws IOException {
+		File json = new File(basePath, str.replace("/pa/units/", ""));
+		ReScaleJson jsonScale = new ReScaleJson(factor);
+		jsonScale.readFile(json);
+		jsonScale.process();
+		return jsonScale;
 	}
 }

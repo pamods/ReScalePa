@@ -2,6 +2,10 @@ package info.nanodesu;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
@@ -24,10 +28,11 @@ public class ReScaleJson {
 	
 	private String unitFile;
 	
-	private boolean success = false;
+	private Set<String> models;
 	
 	public ReScaleJson(float f) {
 		factor = f;
+		models = new HashSet<>();
 	}
 	
 	public void readFile(File f) throws IOException {
@@ -37,24 +42,64 @@ public class ReScaleJson {
 	}
 	
 	public void process() {
+		scaleMesh();
+		scalePlacementSize();
+		
+		
+		// the point of this is to rename all models and return a list of the model names before the rename
+		JsonValue m = json.get("model");
+		if (m != null) {
+			if (m.isObject()) {
+				xModel(m);
+			} else if (m.isArray()) {
+				JsonArray ja = m.asArray();
+				for (int i = 0; i < ja.size(); i++) {
+					xModel(ja.get(i));
+				}
+			}
+		}
+	}
+	
+	private void scalePlacementSize() {
+		JsonValue jsonvalue = json.get("placement_size");
+		if (jsonvalue != null) {
+			scaleArray(jsonvalue);
+		}
+	}
+	
+	private void scaleMesh() {
 		JsonValue jsonValue = json.get("mesh_bounds");
 		if (jsonValue != null) {
-			JsonArray asArray = jsonValue.asArray();
-			for (int i = 0; i < 3; i++) {
-				JsonValue value = asArray.get(i);
-				float m = factor * value.asFloat();
-				asArray.set(i, m);
-			}
-			success = true;
+			scaleArray(jsonValue);
 		} else {
 			System.out.println("unit has no mesh_bounds: "+unitFile);
 		}
 	}
+
+	private void scaleArray(JsonValue jsonValue) {
+		JsonArray asArray = jsonValue.asArray();
+		for (int i = 0; i < asArray.size(); i++) {
+			JsonValue value = asArray.get(i);
+			float m = factor * value.asFloat();
+			asArray.set(i, m);
+		}
+	}
+
+	public Set<String> getModels() {
+		return models;
+	}
+	
+	private void xModel(JsonValue m) {
+		final JsonValue jsonValue2 = m.asObject().get("filename");
+		if (jsonValue2 != null) {
+			final String n = jsonValue2.asString();
+			models.add(n);
+			m.asObject().set("filename", n.replace(".papa", "")+"X.papa");
+		}
+	}
 	
 	public void writeOutput(File f) throws IOException {
-		if (success) {
-			String txt = json.toString();
-			FileUtils.writeStringToFile(f, txt);
-		}
+		String txt = json.toString();
+		FileUtils.writeStringToFile(f, txt);
 	}
 }
