@@ -26,7 +26,7 @@ public class ReScalePA {
 	}
 	
 	public static void main(String[] args) throws NumberFormatException, IOException {
-		args = new String[]{"E:\\Games\\PA\\Planetary Annihilation\\stable\\media\\pa\\units", "C:\\Users\\ColaColin\\AppData\\Local\\Uber Entertainment\\Planetary Annihilation\\server_mods\\rescale", "0.5"};		
+//		args = new String[]{"E:\\Games\\PA\\Planetary Annihilation\\stable\\media\\pa\\units", "C:\\Users\\ColaColin\\AppData\\Local\\Uber Entertainment\\Planetary Annihilation\\server_mods\\rescale", "0.5"};		
 
 		if (args.length != 3) {
 			System.out.println("Usage: ReScalePA <path to media/pa> <empty output directory for the mod> <factor>");
