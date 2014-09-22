@@ -9,6 +9,7 @@ scale=0.5
 #to process all units and only exclude a few exchange "convert" with "ignore" 
 convert
 /pa/units/land/vehicle_factory/vehicle_factory.json
+/pa/units/land/bot_factory/bot_factory.json
 #ends the convert/ignore list
 endblock
 

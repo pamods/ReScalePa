@@ -9,9 +9,9 @@ public class ReScalePaPa {
 	
 	public static void main(String[] args) throws IOException {
 		ReScalePaPa s = new ReScalePaPa(.5f);
-		s.readFile(new File("E:\\Games\\PA\\Planetary Annihilation\\stable\\media\\pa\\units\\land\\assault_bot\\assault_bot.papa"));
+		s.readFile(new File("E:\\Games\\PA\\Planetary Annihilation\\stable\\media\\pa\\units\\land\\bot_factory\\bot_factory.papa"));
 		s.process();
-		s.writeOutput(new File("E:\\Games\\PA\\Planetary Annihilation\\stable\\media\\pa\\units\\land\\assault_bot\\assault_bot.papa"));
+		s.writeOutput(new File("E:\\Games\\PA\\Planetary Annihilation\\stable\\media\\pa\\units\\land\\bot_factory\\bot_factory.papa"));
 	}
 	
 	public enum VertexFormat {
@@ -52,13 +52,21 @@ public class ReScalePaPa {
 		factor = f;
 	}
 	
-	// I read int64 as int32, as I am very doubtful int64 is actually ever required (and handling int64 array coordinates isn't easy to do)
-	private int readInt(int offset) {
-		int result = 0;
-		for (int i = 3; i >= 0; i--) {
+	private long readNBytes(int offset, int n) {
+		long result = 0;
+		for (int i = n-1; i >= 0; i--) {
 			result |= ((bytes[offset+i] & 0xFF) << (i * 8));
 		}
 		return result;
+	}
+	
+	// I read int64 as int32, as I am very doubtful int64 is actually ever required (and handling int64 array coordinates isn't easy to do)
+	private int readInt(int offset) {
+		return (int) readNBytes(offset, 4);
+	}
+	
+	private int readShort(int offset) {
+		return (int) readNBytes(offset, 2);
 	}
 	
 	private void writeInt(int offset, int value) {
@@ -91,17 +99,22 @@ public class ReScalePaPa {
 	}
 	
 	private void processVertices() {
-		int verticesStructLocation = findVerticesStructOffset();
-		VertexFormat vertexFormat = VertexFormat.fromKey(readInt(verticesStructLocation));
-		int numberOfVertices = readInt(verticesStructLocation + 4);
-		int verticesBlockOffset = readInt(verticesStructLocation + 16);
+		int numberOfMeshes = getNumberOfMeshes();
+		int verticesStart = findVerticesStructOffset();
 		
-		for (int i = 0; i < numberOfVertices; i++) {
-			for (int j = 0; j < 3; j++) {
-				int position = verticesBlockOffset + j * 4 + i * vertexFormat.vertexSize;
-				float base = readFloat(position);
-				float scaled = base * factor;
-				writeFloat(position, scaled);
+		for (int m = 0; m < numberOfMeshes; m++) {
+			int readBase = verticesStart + 24 * m;
+			VertexFormat vertexFormat = VertexFormat.fromKey(readInt(readBase));
+			int numberOfVertices = readInt(readBase + 4);
+			int verticesBlockOffset = readInt(readBase + 16);
+			
+			for (int i = 0; i < numberOfVertices; i++) {
+				for (int j = 0; j < 3; j++) {
+					int position = verticesBlockOffset + j * 4 + i * vertexFormat.vertexSize;
+					float base = readFloat(position);
+					float scaled = base * factor;
+					writeFloat(position, scaled);
+				}
 			}
 		}
 	}
@@ -115,21 +128,25 @@ public class ReScalePaPa {
 		
 		for (int i = 0; i < numerOfBones; i++) {
 			int translationsOffset = 4;
-//			int boneOffset = 116;
+			int boneOffset = 116;
 			
 			for (int j = 0; j < 3; j++) {
 				int positionBase = bonesLocation + j * 4 + skeletonSegmentSize * i;
 				int tpos = positionBase + translationsOffset;
-//				int bonOff = positionBase + boneOffset;
+				int bonOff = positionBase + boneOffset;
 				
 				writeFloat(tpos, factor * readFloat(tpos));
-//				writeFloat(bonOff, factor * readFloat(bonOff)); // no idea what this offset is for exactly, but it looks way better if I dont touch it (?)
+				writeFloat(bonOff, factor * readFloat(bonOff)); // no idea what this offset is for exactly, but it looks way better if I dont touch it (?)
 			}
 		}
 	}
 	
 	private int findVerticesStructOffset() {
 		return (int) readInt(48);
+	}
+	
+	private int getNumberOfMeshes() {
+		return readShort(18);
 	}
 	
 	private int findSkeletonHeaderOffset() {
