@@ -77,10 +77,10 @@ public class ReScalePA {
 				File outJson = new File(outputPath, unit);
 				outJson.getParentFile().mkdirs();
 				ReScaleJson jsonScale = processUnitJson(unit);
-				for (String model: jsonScale.getModels()) {
+				for (String model: jsonScale.getPapas()) {
 					processModel(model);
 				}
-				jsonScale.writeOutput(outJson);
+				jsonScale.writeOutput(outJson, outputPath);
 				System.out.println("processed "+unit);
 			} catch (Exception ex) {
 				System.out.println("Error processing unit: "+unit);
@@ -97,17 +97,22 @@ public class ReScalePA {
 		File out = new File(outputPath, model);
 		String modelName = out.getParentFile().getName();
 		
-		String[] textures = new String[]{"_diffuse.papa", "_mask.papa", "_material.papa"};
+		copyTextures(papaFile, out, modelName);
 		
+		papaScale.writeOutput(new File(out.getAbsolutePath().replace(".papa", "X.papa")));
+	}
+
+	private void copyTextures(File papaFile, File out, String modelName)
+			throws IOException {
+		String[] textures = new String[]{"_diffuse.papa", "_mask.papa", "_material.papa"};
 		for (String texture: textures) {
 			FileUtils.copyFile(new File(papaFile.getParentFile(), modelName+texture), new File(out.getParentFile(), modelName+"X"+texture));
 		}
-		papaScale.writeOutput(new File(out.getAbsolutePath().replace(".papa", "X.papa")));
 	}
 	
 	private ReScaleJson processUnitJson(String str) throws IOException {
 		File json = new File(basePath, str.replace("/pa/units/", ""));
-		ReScaleJson jsonScale = new ReScaleJson(factor);
+		ReScaleJson jsonScale = new ReScaleJson(factor, basePath.getParentFile().getParentFile());
 		jsonScale.readFile(json);
 		jsonScale.process();
 		return jsonScale;

@@ -7,15 +7,7 @@ scale=0.5
 
 #this block forces only a certain list of units to be processed
 #to process all units and only exclude a few exchange "convert" with "ignore" 
-convert
-/pa/units/land/vehicle_factory/vehicle_factory.json
-/pa/units/land/bot_factory/bot_factory.json
-#ends the convert/ignore list
-endblock
-
-
-#actually all lines it doesn't understand are ignored, so I keep this list here
-#list of units to convert for a "productive run"
+ignore
 /pa/units/air/base_flyer/base_flyer.json
 /pa/units/commanders/avatar/avatar.json
 /pa/units/commanders/base_commander/base_commander.json
@@ -74,3 +66,11 @@ endblock
 /pa/units/land/bot_spider_adv/bot_spider_adv.json
 /pa/units/sea/fabrication_sub/fabrication_sub.json
 /pa/units/sea/nuclear_sub/nuclear_sub.json
+#ends the convert/ignore list
+endblock
+
+
+#actually all lines it doesn't understand are ignored, so I keep this list here
+#list of units to convert for a "productive run"
+/pa/units/land/vehicle_factory/vehicle_factory.json
+/pa/units/land/bot_factory/bot_factory.json
