@@ -8,6 +8,8 @@ scale=0.5
 #this block forces only a certain list of units to be processed
 #to process all units and only exclude a few exchange "convert" with "ignore" 
 ignore
+#I don't know why, but teleporters refuse to work at some scales at least. I think it's okay to have huge stargates anyway :)
+/pa/units/land/teleporter/teleporter.json
 /pa/units/air/base_flyer/base_flyer.json
 /pa/units/commanders/avatar/avatar.json
 /pa/units/commanders/base_commander/base_commander.json
