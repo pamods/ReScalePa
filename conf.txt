@@ -2,8 +2,12 @@
 pa.units=E:\\Games\\PA\\Planetary Annihilation\\stable\\media\\pa\\units
 #where to create the mod
 mod.output=C:\\Users\\ColaColin\\AppData\\Local\\Uber Entertainment\\Planetary Annihilation\\server_mods\\rescale
+#If this is set it will make the converter create a client mod with only the textures. So players can download them once. 
+#the textures are always the same, no matter what scale is used. However they are only included for the modified units. The texture package on pamm has textures for all units
+#If this line does not exist the textures are put into the server mod
+texturemod.output=C:\\Users\\ColaColin\\AppData\\Local\\Uber Entertainment\\Planetary Annihilation\\mods\\rescale-textures
 #the scale to use
-scale=0.5
+scale=0.4
 
 #this block forces only a certain list of units to be processed
 #to process all units and only exclude a few exchange "convert" with "ignore" 

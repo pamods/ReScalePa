@@ -25,6 +25,8 @@ public class ReScalePA {
 			    "}\n";
 	}
 	
+	private static final String TEXTURE_MOD_INFO = "{    \"context\": \"client\",    \"identifier\": \"info.nanodesu.rescale.textures\",    \"display_name\": \"ReScale Textures\",    \"description\": \"Textures for the use with rescale textures\",    \"author\": \"Cola_Colin\",    \"version\": \"1.0\",    \"build\": \"72996\",    \"date\": \"2014/09/30\",    \"forum\": \"https://forums.uberent.com/threads/rel-rescalepa-converter-to-create-smaller-units.64462/\",    \"signature\": \"not yet implemented\",    \"category\": [        \"textures\",		\"framework\"    ],    \"id\": \"rescale-textures\",    \"enabled\": true,    \"priority\": 100}";
+	
 	public static void main(String[] args) throws NumberFormatException, IOException {
 		if (args.length != 1) {
 			System.out.println("Usage: ReScalePA <path to configuration>. Trying to use my hardcoded path because I am lazy, this will crash for you if you are not Cola_Colin...");
@@ -71,6 +73,10 @@ public class ReScalePA {
 	public void createMod() throws IOException {
 		FileUtils.writeStringToFile(new File(outputPath, "modinfo.json"), createModInfo(factor));
 		
+		if (conf.getTextureModOutputPath() != null) {
+			FileUtils.writeStringToFile(new File(conf.getTextureModOutputPath(), "modinfo.json"), TEXTURE_MOD_INFO);
+		}
+		
 		List<String> units = getUnitsToProcess();
 		for (String unit: units) {
 			try {
@@ -97,7 +103,12 @@ public class ReScalePA {
 		File out = new File(outputPath, model);
 		String modelName = out.getParentFile().getName();
 		
-		copyTextures(papaFile, out, modelName);
+		File textureOut = out;
+		if (conf.getTextureModOutputPath() != null) { 
+			textureOut = new File(conf.getTextureModOutputPath(), model);
+			textureOut.getParentFile().mkdirs();
+		}
+		copyTextures(papaFile, textureOut, modelName);
 		
 		papaScale.writeOutput(new File(out.getAbsolutePath().replace(".papa", "X.papa")));
 	}

@@ -8,6 +8,7 @@ public class ReScaleConf {
 	
 	private String paUnitsPath;
 	private String modOutputPath;
+	private String textureModOutputPath;
 	private float scale;
 	
 	private List<String> unitsToConvert;
@@ -31,6 +32,8 @@ public class ReScaleConf {
 				readLinesToList(unitsToConvert, iter);
 			} else if (line.startsWith("ignore")) {
 				readLinesToList(unitsToIgnore, iter);
+			} else if (line.startsWith("texturemod.output=")) {
+				textureModOutputPath = line.replaceFirst("texturemod.output=", "");
 			}
 		}
 	}
@@ -48,6 +51,10 @@ public class ReScaleConf {
 		}
 	}
 
+	public String getTextureModOutputPath() {
+		return textureModOutputPath;
+	}
+	
 	public String getPaUnitsPath() {
 		return paUnitsPath;
 	}
